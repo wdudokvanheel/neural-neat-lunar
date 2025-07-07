@@ -11,15 +11,19 @@ import nl.wdudokvanheel.neat.lunar.game.ui.LunarWindow;
 import nl.wdudokvanheel.neural.neat.NeatConfiguration;
 import nl.wdudokvanheel.neural.neat.NeatContext;
 import nl.wdudokvanheel.neural.neat.NeatEvolution;
+import nl.wdudokvanheel.neural.neat.genome.ConnectionGene;
 import nl.wdudokvanheel.neural.neat.genome.Genome;
 import nl.wdudokvanheel.neural.neat.genome.NeuronGene;
 import nl.wdudokvanheel.neural.neat.genome.NeuronGeneType;
 import nl.wdudokvanheel.neural.neat.service.InnovationService;
+import nl.wdudokvanheel.neural.neat.service.SerializationService;
 import nl.wdudokvanheel.neural.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -33,6 +37,7 @@ public class LunarNeat {
 
     private LunarWindow lunarWindow;
     private NetworkInfoPanel infoPanel;
+    private GenomeSerializationPanel genomePanel;
     public int speed = 16;
     public boolean renderGraphics = true;
 
@@ -47,7 +52,12 @@ public class LunarNeat {
 
         lunarWindow = new LunarWindow();
         infoPanel = new NetworkInfoPanel();
-        lunarWindow.add(infoPanel, BorderLayout.EAST);
+        genomePanel = new GenomeSerializationPanel();
+        JPanel east = new JPanel();
+        east.setLayout(new BoxLayout(east, BoxLayout.Y_AXIS));
+        east.add(infoPanel);
+        east.add(genomePanel);
+        lunarWindow.add(east, BorderLayout.EAST);
         lunarWindow.pack();
         lunarWindow.addKeyListener(new InputHandler(this));
 
@@ -56,21 +66,24 @@ public class LunarNeat {
         conf.targetSpecies = 30;
         conf.adjustSpeciesThreshold = true;
         conf.speciesThreshold = 3.5;
-        conf.mutateAddConnectionProbability = 0.4;
-        conf.mutateAddNeuronProbability = 0.10;
+        conf.mutateAddConnectionProbability = 0.6;
+        conf.mutateAddNeuronProbability = 0.15;
         conf.mutateToggleConnectionProbability = 0.05;
+        conf.maxSpeciesThreshold = 50;
+        conf.minSpeciesThreshold = 0.1;
         conf.interspeciesCrossover = 0.002;
         conf.setInitialLinks = true;
         conf.mutateWeightProbability = 0.5;
         conf.mutateRandomizeWeightsProbability = 0.3;
-        conf.eliminateStagnantSpecies = true;
-        conf.bottomElimination = 0.0;
+        conf.eliminateStagnantSpecies = false;
+        conf.bottomElimination = 0.05;
         conf.minimumSpeciesSizeForChampionCopy = 1;
         conf.copyChampionsAllSpecies = true;
 
         context = NeatEvolution.createContext(new LanderFactory(), conf);
         NeatEvolution.generateInitialPopulation(context, new NeatLander(this.createInitialGenome(context.innovationService)));
 
+        SerializationService serializationService = new SerializationService();
         //Run game
         for (int i = 0; i < 100000; i++) {
             LunarGame game = startNewGame();
@@ -86,6 +99,7 @@ public class LunarNeat {
                 speed = 0;
             }
 
+            genomePanel.setText(serializationService.serialize(context.getFittestCreature().getGenome()));
             infoPanel.setLander(context.getFittestCreature());
 
             NeatEvolution.nextGeneration(context);
@@ -261,17 +275,46 @@ public class LunarNeat {
         // Steering
         Genome genome = new Genome();
 
-        for (int i = 0; i < 13; i++) {
+        int inputs = 13;
+        int outputs = 2;
+        int hidden =  5;
+
+        for (int i = 0; i < inputs; i++) {
             genome.addNeurons(new NeuronGene(NeuronGeneType.INPUT, innovation.getInputNodeInnovationId(i), 0));
         }
 
-        genome.addNeurons(new NeuronGene(NeuronGeneType.HIDDEN, innovation.getNeuronInnovationId(0), 1));
-//        genome.addNeurons(new NeuronGene(NeuronGeneType.HIDDEN, innovation.getNeuronInnovationId(1), 1));
-//        genome.addNeurons(new NeuronGene(NeuronGeneType.HIDDEN, innovation.getNeuronInnovationId(2), 1));
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < hidden; i++) {
+            NeuronGene hiddenA = new NeuronGene(NeuronGeneType.HIDDEN, innovation.getHiddenNeuronInnovationId(i), 1);
+            genome.addNeurons(hiddenA);
+        }
+
+        List<NeuronGene> hiddenN = genome.getNeurons().stream().filter(neuron -> neuron.getType() == NeuronGeneType.HIDDEN).toList();
+
+        genome.getNeurons()
+                .stream()
+                .filter(neuron -> neuron.getType() == NeuronGeneType.INPUT)
+                .forEachOrdered(input -> {
+                    hiddenN.forEach(hiddenNeuron -> {
+                        int id = innovation.getConnectionInnovationId(input, hiddenNeuron);
+                        genome.addConnections(new ConnectionGene(id, input.getInnovationId(), hiddenNeuron.getInnovationId()));
+                    });
+                });
+
+
+        for (int i = 0; i < outputs; i++) {
             genome.addNeurons(new NeuronGene(NeuronGeneType.OUTPUT, innovation.getOutputNodeInnovationId(i), 2));
         }
+
+        genome.getNeurons()
+                .stream()
+                .filter(neuron -> neuron.getType() == NeuronGeneType.OUTPUT)
+                .forEachOrdered(output -> {
+                    hiddenN.forEach(hiddenNeuron -> {
+                        int id = innovation.getConnectionInnovationId(hiddenNeuron, output);
+                        genome.addConnections(new ConnectionGene(id, hiddenNeuron.getInnovationId(), output.getInnovationId()));
+                    });
+                });
 
         return genome;
     }

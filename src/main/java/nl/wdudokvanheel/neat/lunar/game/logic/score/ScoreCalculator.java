@@ -42,7 +42,7 @@ public enum ScoreCalculator{
 		 */
 		Vector2d position = getLandersBestRelativePosition(level, lander);
 		Vector2d waypoint = getRelativePosition(level, level.waypoint);
-		Vector2d target = getRelativePosition(level, level.target.start.add(PLATFORM_WIDTH / 2, 0));
+		Vector2d target = getRelativePosition(level, level.target.start.add(PLATFORM_WIDTH / 2, -LANDER_HEIGHT/2));
 
 		// If lander is still before the waypoint,
 		if(position.x < waypoint.x){
@@ -92,7 +92,7 @@ public enum ScoreCalculator{
 
 	REACH_GOAL(250, (level, lander) -> lander.reachedGoal ? 1 : 0),
 
-	FUEL_REMAINING(500, (level, lander) -> lander.fuel / LANDER_FUEL_TANK);
+	FUEL_REMAINING(100, (level, lander) -> lander.fuel / LANDER_FUEL_TANK);
 
 	// Enum implementation
 	private ScoreCalculatorFunction calculator;
