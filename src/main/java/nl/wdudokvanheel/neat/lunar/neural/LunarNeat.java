@@ -11,10 +11,11 @@ import nl.wdudokvanheel.neat.lunar.game.ui.LunarWindow;
 import nl.wdudokvanheel.neural.neat.NeatConfiguration;
 import nl.wdudokvanheel.neural.neat.NeatContext;
 import nl.wdudokvanheel.neural.neat.NeatEvolution;
-import nl.wdudokvanheel.neural.neat.genome.ConnectionGene;
 import nl.wdudokvanheel.neural.neat.genome.Genome;
-import nl.wdudokvanheel.neural.neat.genome.NeuronGene;
-import nl.wdudokvanheel.neural.neat.genome.NeuronGeneType;
+import nl.wdudokvanheel.neural.neat.genome.HiddenNeuronGene;
+import nl.wdudokvanheel.neural.neat.genome.InputNeuronGene;
+import nl.wdudokvanheel.neural.neat.genome.OutputNeuronGene;
+import nl.wdudokvanheel.neural.neat.service.GenomeBuilder;
 import nl.wdudokvanheel.neural.neat.service.InnovationService;
 import nl.wdudokvanheel.neural.neat.service.SerializationService;
 import nl.wdudokvanheel.neural.network.Network;
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -41,7 +42,9 @@ public class LunarNeat {
     public int speed = 16;
     public boolean renderGraphics = true;
 
-    ExecutorService executor = new ForkJoinPool(16); // Create a ForkJoinPool with 16 threads
+    private final Random r = new Random();
+
+    ExecutorService executor = new ForkJoinPool(10);
 
     public static void main(String[] args) {
         new LunarNeat();
@@ -269,53 +272,33 @@ public class LunarNeat {
         // Current angle
         // Target x distance
         // Target y distance
+        // Bias
 
         //Outputs:
         // Thrust
         // Steering
-        Genome genome = new Genome();
 
-        int inputs = 13;
-        int outputs = 2;
-        int hidden =  5;
+        GenomeBuilder builder = new GenomeBuilder(innovation);
+        InputNeuronGene[] inputs = builder.addInputNeurons(13);
+        HiddenNeuronGene[] hidden = builder.addHiddenNeurons(5);
+        OutputNeuronGene[] outputs = builder.addOutputNeurons(2);
 
-        for (int i = 0; i < inputs; i++) {
-            genome.addNeurons(new NeuronGene(NeuronGeneType.INPUT, innovation.getInputNodeInnovationId(i), 0));
+        for (InputNeuronGene input : inputs) {
+            for (HiddenNeuronGene hiddenNeuronGene : hidden) {
+                builder.addConnection(input, hiddenNeuronGene, randomWeight());
+            }
         }
 
-
-        for (int i = 0; i < hidden; i++) {
-            NeuronGene hiddenA = new NeuronGene(NeuronGeneType.HIDDEN, innovation.getHiddenNeuronInnovationId(i), 1);
-            genome.addNeurons(hiddenA);
+        for (HiddenNeuronGene hiddenNeuronGene : hidden) {
+            for (OutputNeuronGene output : outputs) {
+                builder.addConnection(hiddenNeuronGene, output, randomWeight());
+            }
         }
 
-        List<NeuronGene> hiddenN = genome.getNeurons().stream().filter(neuron -> neuron.getType() == NeuronGeneType.HIDDEN).toList();
+        return builder.getGenome();
+    }
 
-        genome.getNeurons()
-                .stream()
-                .filter(neuron -> neuron.getType() == NeuronGeneType.INPUT)
-                .forEachOrdered(input -> {
-                    hiddenN.forEach(hiddenNeuron -> {
-                        int id = innovation.getConnectionInnovationId(input, hiddenNeuron);
-                        genome.addConnections(new ConnectionGene(id, input.getInnovationId(), hiddenNeuron.getInnovationId()));
-                    });
-                });
-
-
-        for (int i = 0; i < outputs; i++) {
-            genome.addNeurons(new NeuronGene(NeuronGeneType.OUTPUT, innovation.getOutputNodeInnovationId(i), 2));
-        }
-
-        genome.getNeurons()
-                .stream()
-                .filter(neuron -> neuron.getType() == NeuronGeneType.OUTPUT)
-                .forEachOrdered(output -> {
-                    hiddenN.forEach(hiddenNeuron -> {
-                        int id = innovation.getConnectionInnovationId(hiddenNeuron, output);
-                        genome.addConnections(new ConnectionGene(id, hiddenNeuron.getInnovationId(), output.getInnovationId()));
-                    });
-                });
-
-        return genome;
+    private double randomWeight() {
+        return r.nextDouble(-1, 1);
     }
 }
