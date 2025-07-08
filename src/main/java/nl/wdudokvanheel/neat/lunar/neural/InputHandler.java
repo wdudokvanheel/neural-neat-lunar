@@ -1,22 +1,17 @@
 package nl.wdudokvanheel.neat.lunar.neural;
 
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
+import nl.wdudokvanheel.neat.lunar.simulation.AbstractLunarSimulation;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import static nl.wdudokvanheel.neat.lunar.game.ui.ClipBoard.getClipboardText;
 
-/**
- * @Author Wesley Dudok van Heel
- */
 public class InputHandler implements KeyListener {
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    private AbstractLunarSimulation simulation;
 
-    private LunarNeat lunarNeat;
-
-    public InputHandler(LunarNeat lunarNeat) {
-        this.lunarNeat = lunarNeat;
+    public InputHandler(AbstractLunarSimulation simulation) {
+        this.simulation = simulation;
     }
 
     @Override
@@ -27,37 +22,37 @@ public class InputHandler implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            lunarNeat.speed = lunarNeat.speed > 0 ? 0 : 1;
+            simulation.speed = simulation.speed > 0 ? 0 : 1;
         }
         if (e.getKeyCode() == KeyEvent.VK_1) {
-            lunarNeat.speed = 1;
+            simulation.speed = 1;
         }
         if (e.getKeyCode() == KeyEvent.VK_2) {
-            lunarNeat.speed = 2;
+            simulation.speed = 2;
         }
         if (e.getKeyCode() == KeyEvent.VK_3) {
-            lunarNeat.speed = 4;
+            simulation.speed = 4;
         }
         if (e.getKeyCode() == KeyEvent.VK_4) {
-            lunarNeat.speed = 8;
+            simulation.speed = 8;
         }
         if (e.getKeyCode() == KeyEvent.VK_5) {
-            lunarNeat.speed = 16;
+            simulation.speed = 16;
         }
         if (e.getKeyCode() == KeyEvent.VK_N) {
-            lunarNeat.renderGraphics = !lunarNeat.renderGraphics;
+            simulation.renderGraphics = !simulation.renderGraphics;
         }
         if (e.getKeyCode() == KeyEvent.VK_S) {
-            lunarNeat.skipCurrentGame = true;
+            simulation.skipCurrentGame = true;
         }
         if (e.getKeyCode() == KeyEvent.VK_R) {
-            lunarNeat.skipCurrentGame = true;
-            lunarNeat.restartSimulation = true;
+            simulation.skipCurrentGame = true;
+            simulation.restartSimulation = true;
         }
         if (e.getKeyCode() == KeyEvent.VK_P) {
-            lunarNeat.initialGenome = getClipboardText();
-            lunarNeat.skipCurrentGame = true;
-            lunarNeat.restartSimulation = true;
+            simulation.initialGenome = getClipboardText();
+            simulation.skipCurrentGame = true;
+            simulation.restartSimulation = true;
         }
     }
 

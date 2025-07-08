@@ -1,5 +1,4 @@
-package nl.wdudokvanheel.neat.lunar.neural;
-
+package nl.wdudokvanheel.neat.lunar.simulation;
 
 import nl.wdudokvanheel.neat.lunar.game.level.RandomizedSingleMountainLevel;
 import nl.wdudokvanheel.neat.lunar.game.logic.CollisionDetection;
@@ -9,6 +8,7 @@ import nl.wdudokvanheel.neat.lunar.game.model.Lander;
 import nl.wdudokvanheel.neat.lunar.game.model.Vector2d;
 import nl.wdudokvanheel.neat.lunar.game.ui.ClipBoard;
 import nl.wdudokvanheel.neat.lunar.game.ui.LunarWindow;
+import nl.wdudokvanheel.neat.lunar.neural.*;
 import nl.wdudokvanheel.neural.neat.NeatConfiguration;
 import nl.wdudokvanheel.neural.neat.NeatContext;
 import nl.wdudokvanheel.neural.neat.NeatEvolution;
@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
-public class LunarNeat {
+public class LunarNeat extends AbstractLunarSimulation{
     private Logger logger = LoggerFactory.getLogger(LunarNeat.class);
 
     NeatContext<NeatLander> context;
@@ -39,11 +39,7 @@ public class LunarNeat {
     private LunarWindow lunarWindow;
     private NetworkInfoPanel infoPanel;
     private GenomeSerializationPanel genomePanel;
-    public int speed = 16;
-    public boolean renderGraphics = true;
-    public boolean restartSimulation = false;
-    public boolean skipCurrentGame = false;
-    public String initialGenome = null;
+
 
     private final Random r = new Random();
 
