@@ -41,6 +41,9 @@ public class LunarNeat {
     private GenomeSerializationPanel genomePanel;
     public int speed = 16;
     public boolean renderGraphics = true;
+    public boolean restartSimulation = false;
+    public boolean endCurrentGame = false;
+    public String initialGenome = null;
 
     private final Random r = new Random();
 
@@ -83,29 +86,52 @@ public class LunarNeat {
         conf.minimumSpeciesSizeForChampionCopy = 1;
         conf.copyChampionsAllSpecies = true;
 
-        context = NeatEvolution.createContext(new LanderFactory(), conf);
-        NeatEvolution.generateInitialPopulation(context, new NeatLander(this.createInitialGenome(context.innovationService)));
-
         SerializationService serializationService = new SerializationService();
-        //Run game
-        for (int i = 0; i < 100000; i++) {
-            LunarGame game = startNewGame();
-            setFitness();
-            logger.debug("\t\tFittest of generation #{}: {}/{} Winners: {}",
-                    context.generation,
-                    context.getFittestCreature().getFitness(),
-                    ScoreCalculator.getTotalWeight(),
-                    getWinners(game));
 
-            if (getWinners(game) > 0) {
-                // Pause when we have a winner
-                speed = 0;
+        while (true) {
+            lunarWindow.setTitle("Lunar Lander NEAT");
+            restartSimulation = false;
+            context = NeatEvolution.createContext(new LanderFactory(), conf);
+
+            Genome genome = null;
+            if(this.initialGenome != null) {
+                logger.info("Starting with specified genome");
+                genome = serializationService.deserialize(this.initialGenome);
             }
 
-            genomePanel.setText(serializationService.serialize(context.getFittestCreature().getGenome()));
-            infoPanel.setLander(context.getFittestCreature());
+            if(genome == null) {
+                logger.info("Using default empty genome");
+                genome = this.createInitialGenome(context.innovationService);
+            }
 
-            NeatEvolution.nextGeneration(context);
+            infoPanel.setLander(new NeatLander(genome));
+            infoPanel.repaint();
+
+            NeatEvolution.generateInitialPopulation(context, new NeatLander(genome));
+
+            //Run game
+            for (int i = 0; i < 100000; i++) {
+                LunarGame game = startNewGame();
+                if (restartSimulation) {
+                    break;
+                }
+                setFitness();
+                logger.debug("\t\tFittest of generation #{}: {}/{} Winners: {}",
+                        context.generation,
+                        context.getFittestCreature().getFitness(),
+                        ScoreCalculator.getTotalWeight(),
+                        getWinners(game));
+
+                if (getWinners(game) > 0) {
+                    // Pause when we have a winner
+                    speed = 0;
+                }
+
+                genomePanel.setText(serializationService.serialize(context.getFittestCreature().getGenome()));
+                infoPanel.setLander(context.getFittestCreature());
+
+                NeatEvolution.nextGeneration(context);
+            }
         }
     }
 
@@ -157,8 +183,8 @@ public class LunarNeat {
 
         double lastUpdate = System.currentTimeMillis();
         lunarWindow.repaint();
-        while (game.running && game.frame < 60 * 120) {
 
+        while (game.running && game.frame < 60 * 120) {
             for (int i = 0; i < speed; i++) {
                 logicUpdate(game);
             }
@@ -174,6 +200,11 @@ public class LunarNeat {
                     throw new RuntimeException(e);
                 }
                 lastUpdate = System.currentTimeMillis();
+            }
+
+            if(endCurrentGame){
+                endCurrentGame = false;
+                break;
             }
         }
         NeatLander fittestCreature = context.getFittestCreature();
@@ -285,13 +316,13 @@ public class LunarNeat {
 
         for (InputNeuronGene input : inputs) {
             for (HiddenNeuronGene hiddenNeuronGene : hidden) {
-                builder.addConnection(input, hiddenNeuronGene, randomWeight());
+                builder.addConnection(input, hiddenNeuronGene, 0);
             }
         }
 
         for (HiddenNeuronGene hiddenNeuronGene : hidden) {
             for (OutputNeuronGene output : outputs) {
-                builder.addConnection(hiddenNeuronGene, output, randomWeight());
+                builder.addConnection(hiddenNeuronGene, output, 0);
             }
         }
 
