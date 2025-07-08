@@ -7,6 +7,7 @@ import nl.wdudokvanheel.neat.lunar.game.logic.LunarGame;
 import nl.wdudokvanheel.neat.lunar.game.logic.score.ScoreCalculator;
 import nl.wdudokvanheel.neat.lunar.game.model.Lander;
 import nl.wdudokvanheel.neat.lunar.game.model.Vector2d;
+import nl.wdudokvanheel.neat.lunar.game.ui.ClipBoard;
 import nl.wdudokvanheel.neat.lunar.game.ui.LunarWindow;
 import nl.wdudokvanheel.neural.neat.NeatConfiguration;
 import nl.wdudokvanheel.neural.neat.NeatContext;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 public class LunarNeat {
     private Logger logger = LoggerFactory.getLogger(LunarNeat.class);
 
-    NeatConfiguration conf;
     NeatContext<NeatLander> context;
 
     private LunarWindow lunarWindow;
@@ -67,47 +67,38 @@ public class LunarNeat {
         lunarWindow.pack();
         lunarWindow.addKeyListener(new InputHandler(this));
 
-        conf = new NeatConfiguration();
-        conf.populationSize = 1000;
-        conf.targetSpecies = 30;
-        conf.adjustSpeciesThreshold = true;
-        conf.speciesThreshold = 3.5;
-        conf.mutateAddConnectionProbability = 0.6;
-        conf.mutateAddNeuronProbability = 0.15;
-        conf.mutateToggleConnectionProbability = 0.05;
-        conf.maxSpeciesThreshold = 50;
-        conf.minSpeciesThreshold = 0.1;
-        conf.interspeciesCrossover = 0.002;
-        conf.setInitialLinks = true;
-        conf.mutateWeightProbability = 0.5;
-        conf.mutateRandomizeWeightsProbability = 0.3;
-        conf.eliminateStagnantSpecies = false;
-        conf.bottomElimination = 0.05;
-        conf.minimumSpeciesSizeForChampionCopy = 1;
-        conf.copyChampionsAllSpecies = true;
-
         SerializationService serializationService = new SerializationService();
+
+        // Check copy+paste buffer for valid genome
+        String clipboard = ClipBoard.getClipboardText();
+        if (clipboard != null && serializationService.deserialize(clipboard) != null) {
+            logger.info("Found valid genome on clipboard");
+            initialGenome = clipboard;
+            genomePanel.setText(clipboard);
+        }
 
         while (true) {
             lunarWindow.setTitle("Lunar Lander NEAT");
             restartSimulation = false;
-            context = NeatEvolution.createContext(new LanderFactory(), conf);
+            context = NeatEvolution.createContext(new LanderFactory(), generateConfiguration());
 
-            Genome genome = null;
-            if(this.initialGenome != null) {
-                logger.info("Starting with specified genome");
-                genome = serializationService.deserialize(this.initialGenome);
+            Genome blueprint = createInitialGenome(context.innovationService);
+            Genome champion = null;
+
+            if (this.initialGenome != null) {
+                champion = serializationService.deserialize(this.initialGenome);
+                context.innovationService.importFromGenome(champion);
             }
 
-            if(genome == null) {
-                logger.info("Using default empty genome");
-                genome = this.createInitialGenome(context.innovationService);
+            if (champion != null) {
+                logger.info("Starting with a champion");
+                infoPanel.setLander(new NeatLander(champion));
+            } else {
+                infoPanel.setLander(new NeatLander(blueprint));
             }
-
-            infoPanel.setLander(new NeatLander(genome));
             infoPanel.repaint();
 
-            NeatEvolution.generateInitialPopulation(context, new NeatLander(genome));
+            NeatEvolution.generateInitialPopulation(context, new NeatLander(blueprint), champion == null ? null : new NeatLander(champion));
 
             //Run game
             for (int i = 0; i < 100000; i++) {
@@ -123,6 +114,7 @@ public class LunarNeat {
                         getWinners(game));
 
                 if (getWinners(game) > 0) {
+                    genomePanel.setText(serializationService.serialize(getWinningGenome(game)));
                     // Pause when we have a winner
                     speed = 0;
                 }
@@ -135,8 +127,36 @@ public class LunarNeat {
         }
     }
 
+    private NeatConfiguration generateConfiguration() {
+        NeatConfiguration conf = new NeatConfiguration();
+        conf.populationSize = 1000;
+        conf.targetSpecies = 30;
+        conf.adjustSpeciesThreshold = true;
+        conf.speciesThreshold = 1.5;
+        conf.mutateAddConnectionProbability = 0.6;
+        conf.mutateAddNeuronProbability = 0.15;
+        conf.mutateToggleConnectionProbability = 0.05;
+        conf.maxSpeciesThreshold = 100000000;
+        conf.minSpeciesThreshold = 0.1;
+        conf.interspeciesCrossover = 0.05;
+        conf.mutateWeightProbability = 0.5;
+        conf.mutateRandomizeWeightsProbability = 0.3;
+        conf.eliminateStagnantSpecies = false;
+        conf.bottomElimination = 0.1;
+        conf.minimumSpeciesSizeForChampionCopy = 5;
+        conf.copyChampionsAllSpecies = true;
+        conf.setInitialLinks = true;
+        conf.initialLinkActiveProbability = 0.5;
+        conf.initialLinkWeight = 1.0;
+        return conf;
+    }
+
     private int getWinners(LunarGame game) {
         return game.landers.stream().filter(lander -> lander.reachedGoal).collect(Collectors.toList()).size();
+    }
+
+    private Genome getWinningGenome(LunarGame game) {
+        return ((NeatLander) game.landers.stream().filter(lander -> lander.reachedGoal).collect(Collectors.toList()).getFirst()).getGenome();
     }
 
     private void setFitness() {
@@ -202,7 +222,7 @@ public class LunarNeat {
                 lastUpdate = System.currentTimeMillis();
             }
 
-            if(endCurrentGame){
+            if (endCurrentGame) {
                 endCurrentGame = false;
                 break;
             }

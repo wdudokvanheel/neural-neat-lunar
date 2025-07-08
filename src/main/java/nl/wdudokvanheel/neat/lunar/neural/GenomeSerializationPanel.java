@@ -2,8 +2,8 @@ package nl.wdudokvanheel.neat.lunar.neural;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+
+import static nl.wdudokvanheel.neat.lunar.game.ui.ClipBoard.setClipboard;
 
 public class GenomeSerializationPanel extends JPanel {
     private TextArea textArea;
@@ -36,11 +36,4 @@ public class GenomeSerializationPanel extends JPanel {
     public void setText(String text){
         textArea.setText(text);
     }
-
-    public void setClipboard(String text) {
-        StringSelection selection = new StringSelection(text);
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, null);
-    }
-
 }

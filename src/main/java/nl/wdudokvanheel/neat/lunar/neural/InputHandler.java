@@ -2,10 +2,10 @@ package nl.wdudokvanheel.neat.lunar.neural;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import static nl.wdudokvanheel.neat.lunar.game.ui.ClipBoard.getClipboardText;
 
 /**
  * @Author Wesley Dudok van Heel
@@ -61,19 +61,7 @@ public class InputHandler implements KeyListener {
         }
     }
 
-    public String getClipboardText() {
-        try {
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-            Transferable contents = clipboard.getContents(null);
-            if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                return (String) contents.getTransferData(DataFlavor.stringFlavor);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
 
     @Override
     public void keyReleased(KeyEvent e) {
