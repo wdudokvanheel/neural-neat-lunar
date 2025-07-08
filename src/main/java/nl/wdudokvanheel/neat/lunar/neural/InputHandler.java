@@ -47,20 +47,19 @@ public class InputHandler implements KeyListener {
         if (e.getKeyCode() == KeyEvent.VK_N) {
             lunarNeat.renderGraphics = !lunarNeat.renderGraphics;
         }
-        if (e.getKeyCode() == KeyEvent.VK_K) {
-            lunarNeat.endCurrentGame = true;
+        if (e.getKeyCode() == KeyEvent.VK_S) {
+            lunarNeat.skipCurrentGame = true;
         }
         if (e.getKeyCode() == KeyEvent.VK_R) {
-            lunarNeat.endCurrentGame = true;
+            lunarNeat.skipCurrentGame = true;
             lunarNeat.restartSimulation = true;
         }
         if (e.getKeyCode() == KeyEvent.VK_P) {
             lunarNeat.initialGenome = getClipboardText();
-            lunarNeat.endCurrentGame = true;
+            lunarNeat.skipCurrentGame = true;
             lunarNeat.restartSimulation = true;
         }
     }
-
 
 
     @Override

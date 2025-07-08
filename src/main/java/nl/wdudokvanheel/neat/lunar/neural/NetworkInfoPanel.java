@@ -16,7 +16,7 @@ public class NetworkInfoPanel extends JPanel {
     private Logger logger = LoggerFactory.getLogger(NetworkInfoPanel.class);
 
     public static int WIDTH = 800;
-    public static int HEIGHT = 400;
+    public static int HEIGHT = 800;
 
     private Color activeBackground = Color.decode("#eaeaea");
     private Color inActiveBackground = Color.decode("#c1c1c1");
@@ -29,8 +29,8 @@ public class NetworkInfoPanel extends JPanel {
     private int networkPos = 10;
 
     private Network network;
-    private int neuronSize = 15;
-    private int neuronSpacing = 15;
+    private int neuronSize = 30;
+    private int neuronSpacing = 30;
     private int layers = 0;
     private int maxNeuronsPerLayer = 0;
     private Color myColor;

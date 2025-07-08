@@ -42,7 +42,7 @@ public class LunarNeat {
     public int speed = 16;
     public boolean renderGraphics = true;
     public boolean restartSimulation = false;
-    public boolean endCurrentGame = false;
+    public boolean skipCurrentGame = false;
     public String initialGenome = null;
 
     private final Random r = new Random();
@@ -69,7 +69,7 @@ public class LunarNeat {
 
         SerializationService serializationService = new SerializationService();
 
-        // Check copy+paste buffer for valid genome
+        // Check copy+paste buffer for champion valid genome
         String clipboard = ClipBoard.getClipboardText();
         if (clipboard != null && serializationService.deserialize(clipboard) != null) {
             logger.info("Found valid genome on clipboard");
@@ -130,7 +130,7 @@ public class LunarNeat {
     private NeatConfiguration generateConfiguration() {
         NeatConfiguration conf = new NeatConfiguration();
         conf.populationSize = 1000;
-        conf.targetSpecies = 30;
+        conf.targetSpecies = 20;
         conf.adjustSpeciesThreshold = true;
         conf.speciesThreshold = 1.5;
         conf.mutateAddConnectionProbability = 0.6;
@@ -210,7 +210,7 @@ public class LunarNeat {
             }
 
             //Only render and sleep when necessary
-            if (renderGraphics) {
+            if (renderGraphics && !skipCurrentGame) {
                 //Render game
                 lunarWindow.repaint();
 
@@ -221,12 +221,8 @@ public class LunarNeat {
                 }
                 lastUpdate = System.currentTimeMillis();
             }
-
-            if (endCurrentGame) {
-                endCurrentGame = false;
-                break;
-            }
         }
+        skipCurrentGame = false;
         NeatLander fittestCreature = context.getFittestCreature();
         lunarWindow.setTitle("Lunar Touchdown :: Generation " + context.generation + " :: " + context.creatures.size() + " creatures :: " + context.species.size() + "/" + context.configuration.targetSpecies + " Species (" + context.configuration.speciesThreshold + ") :: Fitness " + fittestCreature.getFitness());
         return game;
@@ -331,7 +327,7 @@ public class LunarNeat {
 
         GenomeBuilder builder = new GenomeBuilder(innovation);
         InputNeuronGene[] inputs = builder.addInputNeurons(13);
-        HiddenNeuronGene[] hidden = builder.addHiddenNeurons(5);
+        HiddenNeuronGene[] hidden = builder.addHiddenNeurons(3);
         OutputNeuronGene[] outputs = builder.addOutputNeurons(2);
 
         for (InputNeuronGene input : inputs) {

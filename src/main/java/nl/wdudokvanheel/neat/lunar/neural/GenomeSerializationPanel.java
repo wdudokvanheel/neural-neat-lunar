@@ -9,7 +9,7 @@ public class GenomeSerializationPanel extends JPanel {
     private TextArea textArea;
     private JButton copy = new JButton("Copy champion genome");
     public static int WIDTH = 800;
-    public static int HEIGHT = 400;
+    public static int HEIGHT = 100;
 
     public GenomeSerializationPanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
