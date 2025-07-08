@@ -137,6 +137,7 @@ public class LunarNeat {
         conf.mutateAddNeuronProbability = 0.15;
         conf.mutateToggleConnectionProbability = 0.05;
         conf.maxSpeciesThreshold = 100000000;
+        conf.ultraChampionClones = 100;
         conf.minSpeciesThreshold = 0.1;
         conf.interspeciesCrossover = 0.05;
         conf.mutateWeightProbability = 0.5;
