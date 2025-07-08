@@ -90,7 +90,7 @@ public enum ScoreCalculator{
 		return 1 - Math.abs(lander.closestPositionToTarget.angle) / 180d;
 	}),
 
-	REACH_GOAL(250, (level, lander) -> lander.reachedGoal ? 1 : 0),
+	REACH_GOAL(1500, (level, lander) -> lander.reachedGoal ? 1 : 0),
 
 	FUEL_REMAINING(100, (level, lander) -> lander.fuel / LANDER_FUEL_TANK);
 
