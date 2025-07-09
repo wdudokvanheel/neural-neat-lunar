@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -39,9 +38,6 @@ public class LunarNeat extends AbstractLunarSimulation{
     private LunarWindow lunarWindow;
     private NetworkInfoPanel infoPanel;
     private GenomeSerializationPanel genomePanel;
-
-
-    private final Random r = new Random();
 
     ExecutorService executor = new ForkJoinPool(10);
 
@@ -112,7 +108,7 @@ public class LunarNeat extends AbstractLunarSimulation{
                 if (getWinners(game) > 0) {
                     genomePanel.setText(serializationService.serialize(getWinningGenome(game)));
                     // Pause when we have a winner
-                    speed = 0;
+//                    speed = 0;
                 }
 
                 genomePanel.setText(serializationService.serialize(context.getFittestCreature().getGenome()));
@@ -125,7 +121,7 @@ public class LunarNeat extends AbstractLunarSimulation{
 
     private NeatConfiguration generateConfiguration() {
         NeatConfiguration conf = new NeatConfiguration();
-        conf.populationSize = 1000;
+        conf.populationSize = 500;
         conf.targetSpecies = 20;
         conf.adjustSpeciesThreshold = true;
         conf.speciesThreshold = 1.5;
@@ -133,18 +129,19 @@ public class LunarNeat extends AbstractLunarSimulation{
         conf.mutateAddNeuronProbability = 0.15;
         conf.mutateToggleConnectionProbability = 0.05;
         conf.maxSpeciesThreshold = 100000000;
-        conf.ultraChampionClones = 100;
-        conf.minSpeciesThreshold = 0.1;
-        conf.interspeciesCrossover = 0.05;
+        conf.ultraChampionClones = 500;
+        conf.minSpeciesThreshold = 0.01;
+        conf.interspeciesCrossover = 0.1;
         conf.mutateWeightProbability = 0.5;
         conf.mutateRandomizeWeightsProbability = 0.3;
-        conf.eliminateStagnantSpecies = false;
-        conf.bottomElimination = 0.1;
+        conf.eliminateStagnantSpecies = true;
+        conf.bottomElimination = 0.01;
         conf.minimumSpeciesSizeForChampionCopy = 5;
         conf.copyChampionsAllSpecies = true;
-        conf.setInitialLinks = true;
+        conf.randomizeInitialLinks = true;
         conf.initialLinkActiveProbability = 0.5;
-        conf.initialLinkWeight = 1.0;
+        conf.initialLinkWeight = 2.0;
+        conf.newCreaturesPerGeneration = 0.00;
         return conf;
     }
 
@@ -240,7 +237,7 @@ public class LunarNeat extends AbstractLunarSimulation{
             if (lander.alive && !lander.reachedGoal) {
                 executor.submit(() -> {
                     updateNeuralNetwork(game, (NeatLander) lander);
-                    latch.countDown(); // Decrement the latch count after task completion
+                    latch.countDown();
                 });
             }
         }
@@ -343,6 +340,6 @@ public class LunarNeat extends AbstractLunarSimulation{
     }
 
     private double randomWeight() {
-        return r.nextDouble(-1, 1);
+        return random.nextDouble(-1, 1);
     }
 }

@@ -66,7 +66,6 @@ public class NetworkInfoPanel extends JPanel {
             g.drawOval((int) position.x, (int) position.y, neuronSize, neuronSize);
             g.setColor(getNeuronColor(neuron));
             g.fillOval((int) position.x, (int) position.y, neuronSize, neuronSize);
-//            drawCenter(g, "#" + neuron.getId(), position.x + neuronSize / 2, position.y + neuronSize / 2 - 15);
         }
     }
 

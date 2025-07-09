@@ -23,10 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 
 public class SingleGenomeBenchmark extends AbstractLunarSimulation {
     private Logger logger = LoggerFactory.getLogger(SingleGenomeBenchmark.class);
@@ -34,9 +30,8 @@ public class SingleGenomeBenchmark extends AbstractLunarSimulation {
     private LunarWindow lunarWindow;
     private NetworkInfoPanel infoPanel;
 
-    private final Random r = new Random();
-
-    ExecutorService executor = new ForkJoinPool(10);
+    private int wins = 0;
+    private int fails = 0;
 
     public static void main(String[] args) {
         new SingleGenomeBenchmark();
@@ -74,17 +69,36 @@ public class SingleGenomeBenchmark extends AbstractLunarSimulation {
         infoPanel.setLander(new NeatLander(champion));
         infoPanel.repaint();
 
-        //Run game
-        for (int i = 0; i < 100000; i++) {
+        // Run game
+        for (int i = 0; i < 100_000; i++) {
             LunarGame game = startNewGame(champion);
             Lander lander = game.landers.getFirst();
+
             if (lander.alive && lander.reachedGoal) {
-                logger.info("Win");
+                wins++;
+                logger.info("Win  (#" + wins + ")");
             } else {
-                logger.info("Fail");
+                fails++;
+                logger.info("Fail (#" + fails + ")");
+            }
+
+            // Update title with stats
+            int total = wins + fails;
+            double winRate = total > 0 ? (wins * 100.0 / total) : 0.0;
+            lunarWindow.setTitle(
+                    String.format("Wins: %d  Fails: %d  Win rate: %.2f%%", wins, fails, winRate)
+            );
+
+            if(restartSimulation) {
+                wins = 0;
+                fails = 0;
+                lunarWindow.setTitle("Lunar Lander NEAT");
+                champion = serializationService.deserialize(this.initialGenome);
+                restartSimulation = false;
             }
         }
     }
+
 
     private void destroyNoFuel(Lander lander) {
         if (!lander.alive || lander.reachedGoal)
@@ -128,28 +142,10 @@ public class SingleGenomeBenchmark extends AbstractLunarSimulation {
 
     private void logicUpdate(LunarGame game) {
         //Run network on each lander to set input/output
-        int landerCount = 0;
         for (Lander lander : game.landers) {
             if (lander.alive && !lander.reachedGoal) {
-                landerCount++;
+                updateNeuralNetwork(game, (NeatLander) lander);
             }
-        }
-
-        CountDownLatch latch = new CountDownLatch(landerCount); // Initialize the CountDownLatch with the number of tasks
-
-        for (Lander lander : game.landers) {
-            if (lander.alive && !lander.reachedGoal) {
-                executor.submit(() -> {
-                    updateNeuralNetwork(game, (NeatLander) lander);
-                    latch.countDown(); // Decrement the latch count after task completion
-                });
-            }
-        }
-
-        try {
-            latch.await(); // Wait for all tasks to complete
-        } catch (InterruptedException e) {
-            // Handle the InterruptedException
         }
 
         // Kill landers out of fuel
@@ -240,6 +236,6 @@ public class SingleGenomeBenchmark extends AbstractLunarSimulation {
     }
 
     private double randomWeight() {
-        return r.nextDouble(-1, 1);
+        return random.nextDouble(-1, 1);
     }
 }
