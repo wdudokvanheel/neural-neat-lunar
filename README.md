@@ -41,3 +41,22 @@ you'll find various genomes, the filenames indicate their success rate.
 * **Simulation** (`nl.wdudokvanheel.neat.lunar.simulation`):
     * `LunarNeat` — Runs full NEAT evolution loop
     * `SingleGenomeBenchmark` — Benchmarks a single genome from the clipboard
+
+## How to run
+
+To run the NEAT evolution
+```bash
+mvn compile exec:java@neat
+```
+
+To benchmark a single genome (make sure it's on you clipboard/copy-past buffer)
+
+```bash
+mvn compile exec:java@benchmark
+```
+
+To play for yourself
+
+```bash
+mvn compile exec:java@singleplayer
+```

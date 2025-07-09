@@ -27,4 +27,43 @@
             <version>2.15.2</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>neat</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>nl.wdudokvanheel.neat.lunar.simulation.LunarNeat</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>benchmark</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>nl.wdudokvanheel.neat.lunar.simulation.SingleGenomeBenchmark</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>singleplayer</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>nl.wdudokvanheel.neat.lunar.game.LunarTouchdown</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
