@@ -4,12 +4,12 @@ This module integrates the NEAT library to play a lunar lander simulation. The g
 fly the lander from the purple starting point to the green target, making a soft landing. The height and shape
 of the hill is randomized each run.
 
-![Neat Flappy screenshot](docs/lunar-screenshot-main.png)
+![Lunar Lander evolution screenshot](docs/lunar-screenshot-main.png)
 
 ## Lander input/output
 
 Each lander has 13 inputs nodes:
-- 8 short sensors that can detect objects near them (N, NE, E, SE, S, SW, W, NW) 
+- 8 short sensors that can detect objects nearby (N, NE, E, SE, S, SW, W, NW) 
 - Angle of the lander
 - Speed of the lander
 - Angle to the target
@@ -20,13 +20,16 @@ And each lander has 2 output nodes it can manipulate
 - Thrust of the engine
 - Steering of the lander
 
+![Visualization of the input sensors](docs/lunar-screenshot-input-sensors.png)
+
+*Visualization of the input sensors*
+
 ## Success rate
 
 This project is still under development and the best genome evolved has a success rate of 75%. In the resources folder
 you'll find various genomes, the filenames indicate their success rate.
 
-![Neat Flappy screenshot](docs/lunar-screenshot-benchmark.png)
-
+![Benchmark Screenshot](docs/lunar-screenshot-benchmark.png)
 
 ## Project structure
 
