@@ -33,7 +33,8 @@ you'll find various genomes, the filenames indicate their success rate.
 
 ## Project structure
 
-* **Game logic** (`nl.wdudokvanheel.neat.lunar.game`): physics, collision detection, scoring, and world update loop.
+* **Game logic** (`nl.wdudokvanheel.neat.lunar.game`): physics, collision detection, scoring, and world update loop, 
+  singleplayer mode.
 * **Model** (`nl.wdudokvanheel.neat.lunar.game.model`): lander, level, vector, and collision classes.
 * **Scoring** (`nl.wdudokvanheel.neat.lunar.game.logic.score`): waypoint and target scoring
 * **NEAT core** (`nl.wdudokvanheel.neural.neat`): genome definitions, evolution context, and configuration.
@@ -44,12 +45,14 @@ you'll find various genomes, the filenames indicate their success rate.
 
 ## How to run
 
+Requires Maven to compile and run the applications
+
 To run the NEAT evolution
 ```bash
 mvn compile exec:java@neat
 ```
 
-To benchmark a single genome (make sure it's on you clipboard/copy-past buffer)
+To benchmark a single genome (make sure it's on your clipboard/copy-paste buffer)
 
 ```bash
 mvn compile exec:java@benchmark
@@ -60,3 +63,20 @@ To play for yourself
 ```bash
 mvn compile exec:java@singleplayer
 ```
+ 
+## Controls
+
+### For the simulation & benchmark
+
+* **P**: Pause/Resume simulation
+* **1/2/3/4/5**: Set simulation speed to 1×, 2×, 4×, 8×, or 16×
+* **N**: Toggle graphics rendering (for faster evolution)
+* **S** Fast forward to the end of the current generation
+* **R** Restart the complete evolution
+* **P** Read a genome from your clipboard and restart the simulation
+
+### For single player
+
+* **Space** Thrust
+* **A** Steer to the left
+* **D** Steer to the right
